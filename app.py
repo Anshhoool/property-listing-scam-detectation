@@ -810,7 +810,5 @@ def unblock_ip(ip):
 
 
 #  MAIN 
-if __name__ == '__main__':
-    if not os.path.exists(DB_PATH):
-        print("⚠️ Database not found! Run database_setup.py")
-    app.run(debug=True, port=5050)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5050, debug=True)
