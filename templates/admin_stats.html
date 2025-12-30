@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold">Security Trends – Charts &amp; Graphs</h2>
+    <div>
+      <a href="{{ url_for('admin_alerts') }}" class="btn btn-outline-secondary btn-sm">← Back to Alerts</a>
+    </div>
+  </div>
+
+  {% if (hits_labels|length == 0) and (block_labels|length == 0) %}
+    <div class="alert alert-info">
+      No data available yet to draw charts. Trigger some honeytokens or blocked IPs to see trends here.
+    </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Honeytoken Triggers per Day</h5>
+          <canvas id="hitsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Blocked IPs per Day</h5>
+          <canvas id="blocksChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const hitsLabels = {{ hits_labels | tojson }};
+  const hitsCounts = {{ hits_counts | tojson }};
+  const blockLabels = {{ block_labels | tojson }};
+  const blockCounts = {{ block_counts | tojson }};
+
+  // Honey hits chart
+  const hitsCtx = document.getElementById('hitsChart').getContext('2d');
+  new Chart(hitsCtx, {
+    type: 'line',
+    data: {
+      labels: hitsLabels,
+      datasets: [{
+        label: 'Honeytoken Triggers',
+        data: hitsCounts,
+        tension: 0.3,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Day' } },
+        y: { title: { display: true, text: 'Count' }, beginAtZero: true, precision: 0 }
+      }
+    }
+  });
+
+  // Blocked IPs chart
+  const blockCtx = document.getElementById('blocksChart').getContext('2d');
+  new Chart(blockCtx, {
+    type: 'bar',
+    data: {
+      labels: blockLabels,
+      datasets: [{
+        label: 'Blocked IPs',
+        data: blockCounts
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Day' } },
+        y: { title: { display: true, text: 'Count' }, beginAtZero: true, precision: 0 }
+      }
+    }
+  });
+</script>
+
+{% endblock %}

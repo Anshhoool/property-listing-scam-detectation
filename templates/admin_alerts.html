@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  .table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 18px;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  a.card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .dup-thumb {
+    width: 70px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+</style>
+
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold">Security Alerts Dashboard</h2>
+    <div>
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">Home page</a>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS: 4 alerts + 1 Charts -->
+  <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
+
+    <!-- ALL ALERTS -->
+    <div class="col">
+      <a href="{{ url_for('admin_alerts', view='all') }}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100 {% if active_view == 'all' %}border-success border-3{% endif %}">
+          <div class="card-body">
+            <h6>All Alerts</h6>
+            <h3 class="fw-bold">{{ total_hits + total_blocked + total_duplicates }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- HONEYTOKEN -->
+    <div class="col">
+      <a href="{{ url_for('admin_alerts', view='hits') }}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100 {% if active_view == 'hits' %}border-warning border-3{% endif %}">
+          <div class="card-body">
+            <h6>Honeytoken Triggers</h6>
+            <h3 class="fw-bold">{{ total_hits }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- BLOCKED IPS -->
+    <div class="col">
+      <a href="{{ url_for('admin_alerts', view='blocked') }}" class="text-decoration-none">
+        <div
+          class="card text-center shadow-sm h-100 {% if active_view == 'blocked' %}border-danger border-3{% endif %}">
+          <div class="card-body">
+            <h6>Blocked IPs</h6>
+            <h3 class="fw-bold">{{ total_blocked }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- DUPLICATE IMAGES -->
+    <div class="col">
+      <a href="{{ url_for('admin_alerts', view='duplicates') }}" class="text-decoration-none">
+        <div
+          class="card text-center shadow-sm h-100 {% if active_view == 'duplicates' %}border-info border-3{% endif %}">
+          <div class="card-body">
+            <h6>Duplicate Images</h6>
+            <h3 class="fw-bold">{{ total_duplicates }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- CHARTS / GRAPH CARD -->
+    <div class="col">
+      <a href="{{ url_for('admin_stats') }}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100 card-hover">
+          <div class="card-body">
+            <h6>Charts &amp; Graphs</h6>
+            <h3 class="fw-bold">Open</h3>
+            <small class="text-muted">View visual security trends</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Honey Hits Table -->
+  {% if active_view in ('all','hits') %}
+  <div class="table-wrapper mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="fw-semibold mb-0">Honeytoken Hit Logs</h5>
+      <span class="badge bg-warning text-dark">{{ hits|length }} Detected</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Time (UTC)</th>
+            <th>Listing ID</th>
+            <th>IP Address</th>
+            <th>User Agent</th>
+            <th>Referer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in hits %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="text-muted small">
+              {% set ts = h['ts'] %}
+              {% if ts %}
+              {{ ts[11:16] | replace(':', '.') }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td><strong>{{ h['listing_id'] }}</strong></td>
+            <td><span class="badge bg-dark text-white">{{ h['ip'] }}</span></td>
+            <td style="max-width: 300px; overflow-x: auto;">{{ h['ua'] }}</td>
+            <td style="max-width: 300px; overflow-x: auto;">{{ h['referer'] }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">No honey hits recorded.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Blocked IPs Table -->
+  {% if active_view in ('all','blocked') %}
+  <div class="table-wrapper mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="fw-semibold mb-0 text-danger">Blocked IPs</h5>
+      <span class="badge bg-danger">{{ blocked|length }} Blocked</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>IP Address</th>
+            <th>Time Blocked (UTC)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in blocked %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><span class="badge bg-danger text-white">{{ b['ip'] }}</span></td>
+            <td>
+              <span class="text-muted small">
+                {% set bt = b['blocked_at'] %}
+                {% if bt %}
+                {{ bt[11:16] | replace(':', '.') }}
+                {% else %}
+                -
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              <form action="{{ url_for('unblock_ip', ip=b['ip']) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-outline-success"
+                  onclick="return confirm('Are you sure you want to unblock this IP?');">
+                  Unblock
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">No blocked IPs.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Duplicate Image Listings -->
+  {% if active_view in ('all','duplicates') %}
+  <div class="table-wrapper mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="fw-semibold mb-0 text-info">Duplicate Image Listings</h5>
+      <span class="badge bg-info text-dark">{{ total_duplicates }} Listings</span>
+    </div>
+
+    {% if duplicates %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Preview</th>
+            <th>Listing ID</th>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Beds/Baths</th>
+            <th>Detected At (UTC)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in duplicates %}
+          {% set dup_images = d['image_gallery'].split(',') if d['image_gallery'] else [d['image']] %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              <img src="{{ dup_images[0] }}" class="dup-thumb" alt="Duplicate Image">
+            </td>
+            <td>{{ d['id'] }}</td>
+            <td>{{ d['title'] }}</td>
+            <td>€{{ d['price'] }}</td>
+            <td>{{ d['beds'] }} bed / {{ d['baths'] }} bath</td>
+            <td class="text-muted small">
+              {% set dts = d.get('created_at') or d.get('ts') %}
+              {% if dts %}
+              {{ dts[11:16] | replace(':', '.') }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('listing_detail', listing_id=d['id']) }}" class="btn btn-sm btn-outline-primary">
+                View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No duplicate images detected yet.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

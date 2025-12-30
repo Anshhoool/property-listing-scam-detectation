@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">Add New Property</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="shadow p-4 rounded bg-light">
+
+    <div class="mb-3">
+      <label>Title</label>
+      <input type="text" name="title" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Price (€)</label>
+      <input type="number" name="price" class="form-control" min="0" required>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Beds</label>
+        <input type="number" name="beds" class="form-control" min="0" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Baths</label>
+        <input type="number" name="baths" class="form-control" min="0" required>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label>Address</label>
+      <input type="text" name="address" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label> Email</label>
+      <input type="email" name="real_contact" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label> Phone</label>
+      <input type="text" name="real_phone" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label>Description</label>
+      <textarea name="description" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Upload Property Images</label>
+      <input type="file" name="images" class="form-control" multiple accept="image/*">
+      <small class="text-muted">You can select multiple images at once</small>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Add Listing</button>
+  </form>
+</div>
+
+{% endblock %}

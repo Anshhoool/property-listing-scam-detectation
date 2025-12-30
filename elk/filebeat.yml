@@ -1,0 +1,41 @@
+filebeat.inputs:
+  - type: filestream
+    id: honey_hits_logs
+    enabled: true
+    paths:
+      - /var/log/rentalshield/honey_hits.log
+    fields:
+      log_type: honey_hit
+    fields_under_root: true
+
+  - type: filestream
+    id: admin_notifications_logs
+    enabled: true
+    paths:
+      - /var/log/rentalshield/admin_notifications.log
+    fields:
+      log_type: admin_notification
+    fields_under_root: true
+
+# JSON har line me hai, isliye yeh processor use karte hain
+processors:
+  - decode_json_fields:
+      fields: ["message"]
+      target: "json"
+      overwrite_keys: true
+      add_error_key: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  indices:
+    - index: "rentalshield-honey-%{+yyyy.MM.dd}"
+      when.equals:
+        log_type: "honey_hit"
+    - index: "rentalshield-admin-%{+yyyy.MM.dd}"
+      when.equals:
+        log_type: "admin_notification"
+
+setup.template.enabled: false
+setup.ilm.enabled: false
+logging.to_files: false
+logging.level: info

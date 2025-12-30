@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">Available Properties</h2>
+
+  <div class="row">
+    {% if listings %}
+    {% for l in listings %}
+    {% set images = l['image_gallery'].split(',') if l['image_gallery'] else [l['image']] %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm h-100 border-0 rounded-4 overflow-hidden">
+
+        <!-- Mini Carousel -->
+        <div id="carousel{{ l['id'] }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2500">
+          <div class="carousel-inner">
+            {% for img in images %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+              <img src="{{ img }}" class="d-block w-100" alt="Property Image"
+                style="height:220px;object-fit:cover;filter:brightness(1.05) contrast(1.1);">
+            </div>
+            {% endfor %}
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ l['id'] }}"
+            data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter:invert(1);"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ l['id'] }}"
+            data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true" style="filter:invert(1);"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ l['title'] }}</h5>
+          <p class="card-text mb-3">
+            <strong>€{{ l['price'] }}</strong><br>
+            {{ l['beds'] }} {{ 'Bed' if l['beds'] == '1' else 'Beds' }},
+            {{ l['baths'] }} {{ 'Bath' if l['baths'] == '1' else 'Baths' }}
+          </p>
+
+          <div class="mt-auto">
+            {% if is_admin %}
+            <!-- Admin ko 3 buttons: View + Edit + Delete -->
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('listing_detail', listing_id=l['id']) }}" class="btn btn-primary btn-sm w-50">View</a>
+              <a href="{{ url_for('edit_listing', listing_id=l['id']) }}" class="btn btn-warning btn-sm w-50">Edit</a>
+              <button type="button" class="btn btn-danger btn-sm w-50" data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal" data-id="{{ l['id'] }}" data-title="{{ l['title'] }}">
+                Delete
+              </button>
+            </div>
+            {% else %}
+            <!-- Normal user ko sirf View -->
+            <a href="{{ url_for('listing_detail', listing_id=l['id']) }}" class="btn btn-primary btn-sm w-100">
+              View
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center">
+      <p>No listings available. Please add one from the Admin panel.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Global Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-body-text">Are you sure you want to delete this listing?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="post">
+          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

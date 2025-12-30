@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Property Scam Detection</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="https://em-content.zobj.net/source/microsoft-teams/337/house_1f3e0.png" type="image/png">
+</head>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var deleteModal = document.getElementById('confirmDeleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var listingId = button.getAttribute('data-id');
+      var listingTitle = button.getAttribute('data-title');
+      var modalBody = deleteModal.querySelector('#modal-body-text');
+      modalBody.textContent = 'Are you sure you want to delete "' + listingTitle + '"?';
+      var form = deleteModal.querySelector('#deleteForm');
+      form.action = '/delete/' + listingId;
+    });
+  });
+</script>
+
+
+
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">Online Property Scam Detection</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+
+        <!-- Home: sab ko dikhega -->
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+
+        {% if is_admin %}
+          <!--  Sirf Admin ko dikhenge -->
+          <li class="nav-item">
+            <a class="nav-link" href="/admin">Add Property</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/alerts">Alerts</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+
+        {% else %}
+          <!-- Sirf Normal User ko -->
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/login">Admin Login</a>
+          </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container mt-4">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="bg-light text-center p-3 mt-5 border-top">
+    <small>© 2025 Online Property Scam Detection</small>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

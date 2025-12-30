@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+
+      <h2 class="mb-3 text-center">{{ listing['title'] }}</h2>
+
+      <!-- Carousel for Multiple Images -->
+      {% set images = listing['image_gallery'].split(',') if listing['image_gallery'] else [listing['image']] %}
+      <div id="propertyCarousel" class="carousel slide shadow-lg rounded overflow-hidden mb-4"
+           data-bs-ride="carousel" style="max-height: 500px;">
+        <div class="carousel-inner">
+          {% for img in images %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img src="{{ img }}" class="d-block w-100" alt="Property Image"
+                 style="height:500px;object-fit:cover;filter:brightness(1.05) contrast(1.1);">
+          </div>
+          {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true" style="filter:invert(1);"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true" style="filter:invert(1);"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+
+      <!-- ADMIN-ONLY RISK BOX -->
+      {% if is_admin and risk %}
+      <div class="mt-3 p-3 bg-white border rounded shadow-sm">
+        <h5 class="mb-2">Scam risk (admin only)</h5>
+        {% if risk.level == 'High' %}
+          <span class="badge bg-danger mb-2">High risk</span>
+        {% elif risk.level == 'Medium' %}
+          <span class="badge bg-warning text-dark mb-2">Medium risk</span>
+        {% else %}
+          <span class="badge bg-success mb-2">Low risk</span>
+        {% endif %}
+        <p class="mb-1"><strong>Score:</strong> {{ risk.score }}/100</p>
+        {% if risk.reasons %}
+        <p class="mb-1"><strong>Why flagged:</strong></p>
+        <ul class="mb-1">
+          {% for r in risk.reasons %}
+          <li>{{ r }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Property Info -->
+      <div class="mt-4 p-4 bg-light rounded shadow-sm">
+        <h5 class="text-secondary">Property Details</h5>
+        <p><strong>Price:</strong> €{{ listing['price'] }}</p>
+        <p><strong>Beds:</strong> {{ listing['beds'] }} {{ 'Bed' if listing['beds'] == '1' else 'Beds' }}</p>
+        <p><strong>Baths:</strong> {{ listing['baths'] }} {{ 'Bath' if listing['baths'] == '1' else 'Baths' }}</p>
+
+        {% if listing.get('address') %}
+          <p><strong>Address:</strong> {{ listing['address'] }}</p>
+        {% endif %}
+
+        <p><strong>Description:</strong></p>
+        <p>{{ listing['description'] }}</p>
+      </div>
+
+      {# ------------- Hidden honeytoken bits (for bots) ------------- #}
+      <!-- honey: {{ listing['contact_email'] }} -->
+      <div aria-hidden="true" style="display:none" data-honey="{{ listing['contact_email'] }}"></div>
+      <div style="display:none" aria-hidden="true">
+        <a href="{{ url_for('honey_trigger', listing_id=listing['id']) }}">contact</a>
+      </div>
+      {# ------------------------------------------------------------- #}
+
+      <!-- Visible contact for real users -->
+      <div class="mt-4 p-4 bg-white rounded shadow-sm border">
+        <h5>Contact details</h5>
+        {% if listing.get('real_contact') %}
+          <p><strong>Email:</strong> <a href="mailto:{{ listing['real_contact'] }}">{{ listing['real_contact'] }}</a></p>
+        {% endif %}
+        {% if listing.get('real_phone') %}
+          <p><strong>Phone:</strong> {{ listing['real_phone'] }}</p>
+        {% endif %}
+      </div>
+
+           <!-- Simple contact form -->
+      <div class="mt-4 p-4 bg-white rounded shadow-sm border">
+        <h5 class="mb-3">Send a message to owner</h5>
+
+        {% if captcha_error %}
+          <div class="alert alert-danger py-2 mb-3">
+            {{ captcha_error }}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('contact_owner', listing_id=listing['id']) }}">
+          <div class="mb-3">
+            <label class="form-label">Your Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Your Email</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message</label>
+            <textarea name="message" class="form-control" rows="3" required></textarea>
+          </div>
+
+          <!-- HUMAN CHECK Math  -->
+          <div class="mb-3">
+            <label class="form-label">
+              Are you human? Solve:
+              {{ captcha_a }} + {{ captcha_b }} = ?
+            </label>
+            <input type="number" name="captcha_answer" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Send message</button>
+        </form>
+      </div>
+
+
+      <div class="text-center mt-4">
+        <a href="/" class="btn btn-secondary">← Back to Listings</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
